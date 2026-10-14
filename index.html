@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Iran 1899 - RDR2 Style Map</title>
+  
+  <!-- کتابخانه Leaflet -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@600;900&family=Vazirmatn:wght@500;700&display=swap');
+
+    * { box-sizing: border-box; }
+    body, html {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background-color: #1e1713;
+      font-family: 'Vazirmatn', sans-serif;
+    }
+
+    #map {
+      width: 100%;
+      height: 100%;
+      background: #cbb493;
+    }
+
+    /* فیلتر مخصوص برای ایجاد تم کاغذ کهنه و زرد/قهوه‌ای ردد ۲ */
+    .leaflet-tile-pane {
+      filter: sepia(0.88) contrast(1.2) brightness(0.88) hue-rotate(-12deg);
+    }
+
+    /* هدر سبک بازی */
+    .rdr-title-card {
+      position: absolute;
+      top: 18px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(33, 23, 17, 0.92);
+      color: #ebd7bd;
+      border: 2px solid #8e6c46;
+      border-radius: 4px;
+      padding: 10px 24px;
+      z-index: 1000;
+      text-align: center;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.6);
+      pointer-events: none;
+    }
+
+    .rdr-title-card h1 {
+      margin: 0;
+      font-family: 'Cinzel', serif;
+      font-size: 1.15rem;
+      letter-spacing: 2px;
+      color: #df4426; /* قرمز شاخص ردد */
+      text-shadow: 1px 1px 2px #000;
+    }
+
+    .rdr-title-card p {
+      margin: 3px 0 0;
+      font-size: 0.8rem;
+      color: #c9b49a;
+    }
+
+    /* پاپ‌آپ‌های نقشه با تم قدیمی */
+    .leaflet-popup-content-wrapper {
+      background: #f4ecd8 !important;
+      border: 2px solid #5a4430;
+      border-radius: 3px !important;
+      color: #2b1f17 !important;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.4) !important;
+    }
+    .leaflet-popup-tip {
+      background: #f4ecd8 !important;
+    }
+    .rdr-popup-title {
+      font-weight: bold;
+      color: #a82415;
+      font-size: 1rem;
+      border-bottom: 1px dashed #8b7355;
+      padding-bottom: 4px;
+      margin-bottom: 6px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="rdr-title-card">
+    <h1>PERSIA • 1899</h1>
+    <p>نقشه قلمرو ایران — اواخر دوران قاجار</p>
+  </div>
+
+  <div id="map"></div>
+
+  <script>
+    // تنظیم مرکز نقشه روی ایران و مقدار زوم اولیه
+    const map = L.map('map', {
+      center: [32.4279, 53.6880],
+      zoom: 6,
+      minZoom: 5,
+      maxZoom: 10
+    });
+
+    // لایه نقشه با خطوط کلاسیک سیاه و سفید (با فیلتر CSS تبدیل به تم چرمی/کهنه ردد ۲ می‌شود)
+    L.tileLayer('https://tiles.stadiamaps.com/tiles/stamen_toner_background/{z}/{x}/{y}{r}.png', {
+      attribution: '&copy; Stadia Maps &copy; OpenStreetMap'
+    }).addTo(map);
+
+    // نقاط دیدنی و شهرهای شاخص (نمونه‌هایی از مناطق ایران)
+    const locations = [
+      {
+        name: "دارالخلافه طهران",
+        coords: [35.6892, 51.3890],
+        desc: "پایتخت قاجار، کاخ گلستان و دروازه‌های قدیمی دارالخلافه."
+      },
+      {
+        name: "اصفهان (نصف جهان)",
+        coords: [32.6546, 51.6680],
+        desc: "میدان نقش جهان، پل‌های تاریخی و کاروانسراهای تجاری شاه‌عباسی."
+      },
+      {
+        name: "شیراز و تخت جمشید",
+        coords: [29.5918, 52.5837],
+        desc: "سرزمین تمدن باستان، بقایای پرسپولیس و کاروان‌های فارس."
+      },
+      {
+        name: "تبریز (پایتخت تجارت)",
+        coords: [38.0800, 46.2919],
+        desc: "دروازه قفقاز و بزرگ‌ترین بازار سرپوشیده جاده ابریشم."
+      },
+      {
+        name: "کویر لوت و ریگ جن",
+        coords: [30.6000, 58.8000],
+        desc: "منطقه وحشی، غیرقابل سکونت و زیستگاه یوزپلنگ و عقرب سیاه."
+      },
+      {
+        name: "بندر بوشهر (خلیج فارس)",
+        coords: [28.9234, 50.8203],
+        desc: "لنگرگاه کشتی‌های بادبانی، صید مروارید و کاروان‌های جنوب."
+      }
+    ];
+
+    // اضافه کردن نشانگرها به نقشه
+    locations.forEach(loc => {
+      const marker = L.marker(loc.coords).addTo(map
